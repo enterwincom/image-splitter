@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Image Splitter: Quick & Easy Grid Maker</title>
+    <title>Image Splitter</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
-            --primary-light: #a855f7;
             --bg-gradient: linear-gradient(135deg, #f0f4ff 0%, #f9f5ff 100%);
-            --card-bg: rgba(255, 255, 255, 0.98);
+            --card-bg: #ffffff;
             --text-main: #1e293b;
             --text-muted: #94a3b8;
             --inner-bg: #f8fafc;
@@ -19,204 +18,169 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
         body {
-            font-family: 'Pretendard', -apple-system, system-ui, sans-serif;
+            font-family: 'Pretendard', -apple-system, sans-serif;
             background: var(--bg-gradient);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 16px;
         }
 
         .app-container {
             width: 100%;
-            max-width: 440px;
+            max-width: 400px; /* 모바일 최적화 폭 */
             background: var(--card-bg);
             border-radius: 32px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-            padding: 40px 24px;
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            padding: 32px 20px;
         }
 
-        header { text-align: center; margin-bottom: 32px; }
+        header { text-align: center; margin-bottom: 24px; }
         header h1 { 
-            font-size: 2.4rem; 
+            font-size: 2.2rem; 
             background: linear-gradient(to right, #6366f1, #d946ef);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
-            letter-spacing: -0.03em;
         }
-        header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 6px; font-weight: 500; }
+        header p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
 
         /* 업로드 영역 */
         #drop-zone {
             background: #fff;
             border: 2px dashed #e2e8f0;
-            border-radius: 28px;
-            padding: 48px 20px;
+            border-radius: 24px;
+            padding: 40px 10px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
-        #drop-zone:hover { border-color: var(--primary); background: #fcfaff; }
-        .upload-icon { font-size: 42px; margin-bottom: 12px; display: block; }
+        .upload-icon { font-size: 32px; margin-bottom: 8px; display: block; }
 
-        /* 설정 박스 */
+        /* 설정 컨테이너 */
         .settings-container {
             background: var(--inner-bg);
-            border-radius: 28px;
-            padding: 24px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(0,0,0,0.03);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 20px;
         }
 
         .section-title {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #64748b;
-            margin-bottom: 20px;
-        }
-
-        .section-title::before, .section-title::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
-        }
-
-        /* 가로 줄 / 세로 칸 정렬 핵심 */
-        .grid-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
             margin-bottom: 16px;
+        }
+        .section-title::before, .section-title::after {
+            content: ""; flex: 1; height: 1px; background: #e2e8f0;
+        }
+
+        /* [수정 포인트] 가로/세로 설정 정렬 */
+        .grid-wrapper {
+            display: flex; /* grid 대신 flex로 유연하게 조절 */
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
         .control-group {
+            flex: 1; /* 1:1 비율 유지 */
             background: #ffffff;
-            padding: 20px 10px;
-            border-radius: 20px;
+            padding: 14px 4px;
+            border-radius: 18px;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
             border: 1px solid #f1f5f9;
+            min-width: 0; /* 내용물 때문에 박스가 늘어나는 것 방지 */
         }
 
         .control-group b {
             display: block;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #94a3b8;
-            margin-bottom: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
+            margin-bottom: 8px;
+            white-space: nowrap;
         }
 
         .number-picker {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 4px;
         }
 
         .number-picker input {
-            width: 44px;
+            width: 32px;
             border: none;
             text-align: center;
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             font-weight: 800;
             color: var(--text-main);
             background: transparent;
             outline: none;
+            -moz-appearance: textfield;
         }
-
-        /* 숫자 화살표 제거 */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
             -webkit-appearance: none; margin: 0;
         }
 
         .btn-step {
-            width: 34px;
-            height: 34px;
+            width: 28px;
+            height: 28px;
             border: none;
             background: #f1f5f9;
             border-radius: 50%;
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: var(--primary);
             cursor: pointer;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
-        .btn-step:hover { background: var(--primary); color: white; }
-        .btn-step:active { transform: scale(0.9); }
+        .btn-step:active { transform: scale(0.9); background: #e2e8f0; }
 
         /* 저장 품질 */
         .quality-wrapper { position: relative; }
         select {
             width: 100%;
-            padding: 16px 20px;
-            border-radius: 16px;
+            padding: 14px 16px;
+            border-radius: 14px;
             border: 1px solid #e2e8f0;
             appearance: none;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             background: white;
-            cursor: pointer;
             color: #475569;
-            outline: none;
         }
         .quality-wrapper::after {
-            content: '▾';
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            pointer-events: none;
+            content: '▾'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8;
         }
 
-        /* 하단 메인 버튼 */
+        /* 메인 버튼 */
         #splitBtn {
             width: 100%;
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             color: white;
             border: none;
-            padding: 22px;
-            border-radius: 20px;
-            font-size: 1.1rem;
+            padding: 18px;
+            border-radius: 18px;
+            font-size: 1rem;
             font-weight: 800;
-            box-shadow: 0 12px 24px -6px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
             cursor: pointer;
-            transition: all 0.3s ease;
         }
-        #splitBtn:active { transform: scale(0.98); opacity: 0.9; }
         #splitBtn:disabled { background: #cbd5e1; box-shadow: none; }
 
-        /* 미리보기 영역 */
-        #preview-container { margin-top: 40px; display: none; }
-        #preview {
-            display: grid;
-            gap: 4px;
-            background: #f1f5f9;
-            padding: 8px;
-            border-radius: 20px;
-        }
+        #preview-container { margin-top: 32px; display: none; }
+        #preview { display: grid; gap: 4px; background: #f1f5f9; padding: 6px; border-radius: 16px; }
         #preview img { width: 100%; border-radius: 4px; display: block; }
 
-        footer {
-            margin-top: 32px;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            font-weight: 500;
-        }
+        footer { margin-top: 24px; text-align: center; font-size: 0.75rem; color: #94a3b8; }
     </style>
 </head>
 <body oncontextmenu="return false">
@@ -224,13 +188,13 @@
 <div class="app-container">
     <header>
         <h1>Image Splitter</h1>
-        <p>나만의 감성 피드, 한 번에 분할하세요</p>
+        <p>나만의 감성 피드 분할 도구</p>
     </header>
     
     <div id="drop-zone" onclick="document.getElementById('imageInput').click()">
         <span class="upload-icon">🖼️</span>
-        <p id="drop-text" style="font-weight: 700; color: #64748b;">사진을 불러오세요</p>
-        <div id="file-info" style="font-size: 0.9rem; color: var(--primary); margin-top: 8px; font-weight: 700;"></div>
+        <p id="drop-text" style="font-weight: 700; color: #64748b; font-size: 0.9rem;">사진을 불러오세요</p>
+        <div id="file-info" style="font-size: 0.85rem; color: var(--primary); margin-top: 4px; font-weight: 700;"></div>
         <input type="file" id="imageInput" accept="image/*" style="display: none;">
     </div>
 
@@ -259,7 +223,7 @@
         <div class="quality-wrapper">
             <select id="quality">
                 <option value="1.0">저장 품질: 아주 높음</option>
-                <option value="0.9">저장 품질: 높음 (추천)</option>
+                <option value="0.9" selected>저장 품질: 높음 (추천)</option>
                 <option value="0.7">저장 품질: 보통</option>
             </select>
         </div>
@@ -268,13 +232,11 @@
     <button id="splitBtn" onclick="splitAndDownload()">이미지 분할 후 저장하기</button>
 
     <div id="preview-container">
-        <p style="text-align: center; font-weight: 700; margin-bottom: 12px; color: #64748b; font-size: 0.85rem;">분할 결과 미리보기</p>
+        <p style="text-align: center; font-weight: 700; margin-bottom: 8px; color: #64748b; font-size: 0.8rem;">분할 결과 미리보기</p>
         <div id="preview"></div>
     </div>
 
-    <footer>
-        © 2026. Image Splitter. All rights reserved.
-    </footer>
+    <footer>© 2026. Image Splitter.</footer>
 </div>
 
 <script>
@@ -338,7 +300,7 @@
                     imgTag.src = dataUrl;
                     preview.appendChild(imgTag);
                 } else {
-                    zip.file(`image_part_${r+1}_${c+1}.jpg`, dataUrl.split(',')[1], {base64: true});
+                    zip.file(`part_${r+1}_${c+1}.jpg`, dataUrl.split(',')[1], {base64: true});
                 }
             }
         }
@@ -347,7 +309,7 @@
             const content = await zip.generateAsync({type:"blob"});
             const link = document.createElement('a');
             link.href = URL.createObjectURL(content);
-            link.download = `split_images_${new Date().getTime()}.zip`;
+            link.download = `split_images.zip`;
             link.click();
         }
     }
@@ -355,13 +317,12 @@
     async function splitAndDownload() {
         if (!selectedFile) return alert("사진을 먼저 선택해주세요!");
         const btn = document.getElementById('splitBtn');
-        const originalText = btn.innerText;
-        btn.innerText = "작업 중...";
+        btn.innerText = "처리 중...";
         btn.disabled = true;
         try {
             await renderTiles(true);
         } finally {
-            btn.innerText = originalText;
+            btn.innerText = "이미지 분할 후 저장하기";
             btn.disabled = false;
         }
     }
