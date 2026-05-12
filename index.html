@@ -56,6 +56,11 @@
             text-align: center;
             cursor: pointer;
             margin-bottom: 20px;
+            transition: border-color 0.3s; /* 시각적 피드백을 위한 애니메이션 */
+        }
+        #drop-zone.dragover { /* 드래그 중일 때 스타일 */
+            border-color: var(--primary);
+            background-color: #f1f5f9;
         }
         .upload-icon { font-size: 32px; margin-bottom: 8px; display: block; }
 
@@ -81,21 +86,20 @@
             content: ""; flex: 1; height: 1px; background: #e2e8f0;
         }
 
-        /* [수정 포인트] 가로/세로 설정 정렬 */
         .grid-wrapper {
-            display: flex; /* grid 대신 flex로 유연하게 조절 */
+            display: flex; 
             gap: 10px;
             margin-bottom: 12px;
         }
 
         .control-group {
-            flex: 1; /* 1:1 비율 유지 */
+            flex: 1; 
             background: #ffffff;
             padding: 14px 4px;
             border-radius: 18px;
             text-align: center;
             border: 1px solid #f1f5f9;
-            min-width: 0; /* 내용물 때문에 박스가 늘어나는 것 방지 */
+            min-width: 0;
         }
 
         .control-group b {
@@ -191,9 +195,10 @@
         <p>나만의 감성 피드 분할 도구</p>
     </header>
     
+    <!-- 업로드 영역에 드래그 이벤트 리스너가 추가될 예정입니다. -->
     <div id="drop-zone" onclick="document.getElementById('imageInput').click()">
         <span class="upload-icon">🖼️</span>
-        <p id="drop-text" style="font-weight: 700; color: #64748b; font-size: 0.9rem;">사진을 불러오세요</p>
+        <p id="drop-text" style="font-weight: 700; color: #64748b; font-size: 0.9rem;">사진을 불러오거나 끌어다 놓으세요</p>
         <div id="file-info" style="font-size: 0.85rem; color: var(--primary); margin-top: 4px; font-weight: 700;"></div>
         <input type="file" id="imageInput" accept="image/*" style="display: none;">
     </div>
@@ -253,12 +258,52 @@
     }
 
     const imageInput = document.getElementById('imageInput');
+    const dropZone = document.getElementById('drop-zone');
+
+    // [수정 포인트] 파일 처리 로직을 함수로 분리
+    function handleFile(file) {
+        if (!file || !file.type.startsWith('image/')) {
+            alert('이미지 파일만 업로드 가능합니다.');
+            return;
+        }
+        selectedFile = file;
+        document.getElementById('file-info').innerText = selectedFile.name;
+        document.getElementById('drop-text').style.display = 'none';
+        updatePreview();
+    }
+
+    // [수정 포인트] 파일 드래그 앤 드롭 이벤트 리스너 추가
+    
+    // 드래그해서 영역 위에 있을 때
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault(); // 파일이 새 탭에서 열리는 것을 방지
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+    });
+
+    // 드래그해서 영역을 벗어났을 때
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+    });
+
+    // 파일을 영역 위에 놓았을 때
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length) {
+            handleFile(files[0]);
+        }
+    });
+
+    // 클릭해서 파일 업로드 (기존 방식)
     imageInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
-            selectedFile = e.target.files[0];
-            document.getElementById('file-info').innerText = selectedFile.name;
-            document.getElementById('drop-text').style.display = 'none';
-            updatePreview();
+            handleFile(e.target.files[0]);
         }
     });
 
